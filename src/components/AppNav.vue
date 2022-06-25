@@ -16,10 +16,30 @@
           </button>
           <div class="collapse navbar-collapse" id="navbarSupportedContent">
             <ul class="navbar-nav me-auto mb-2 mb-lg-0">
-              <li class="nav-item" v-for="(menuItem, index) in menuItems" :key="index">
-                <router-link class="nav-link" :to="menuItem.to">{{menuItem.title}}</router-link>
+              <li
+                class="nav-item"
+                v-for="(menuItem, index) in menuItems"
+                :key="index"
+                v-show="menuItem.loggedInStatus"
+              >
+                <div v-if="menuItem.to">
+                  <router-link class="nav-link" :to="menuItem.to">{{
+                    menuItem.title
+                  }}</router-link>
+                </div>
+                <div v-else>
+                  <a
+                    href="#"
+                    class="nav-link"
+                    @click="handleFunctionCall(menuItem.link)"
+                    >{{ menuItem.title }}</a
+                  >
+                </div>
               </li>
             </ul>
+            <div v-if="$store.state.user.status">
+              Bejelentkezve: {{ $store.state.user.username }}
+            </div>
           </div>
         </div>
       </nav>
@@ -28,18 +48,55 @@
 </template>
 
 <script>
+import store from "@/store";
+
 export default {
   name: "app-nav",
-  data(){
-    return{
-        menuItems:[
-            {title: 'Niytó oldal', to:'/'},
-            {title: 'Bejelentkezés', to:'/bejelentkezes'},
-            {title: 'Profil', to:'/profil'},
-            {title: 'Kijelentkezés', to:'/kijelentkezes'}
-        ]
-    }
-  }
+  data() {
+    return {};
+  },
+  computed: {
+    menuItems() {
+      return [
+        { title: "Niytó oldal", to: "/", loggedInStatus: true, link: false },
+        {
+          title: "Bejelentkezés",
+          to: "/bejelentkezes",
+          loggedInStatus: !this.getLoggedInStatus,
+          link: false,
+        },
+        {
+          title: "Profil",
+          to: "/profil",
+          loggedInStatus: this.getLoggedInStatus,
+          link: false,
+        },
+        {
+          title: "Kijelentkezés",
+          to: "/kijelentkezes",
+          loggedInStatus: this.getLoggedInStatus,
+          link: "onLogout",
+        },
+      ];
+    },
+    getLoggedInStatus() {
+      return store.state.user.status;
+    },
+  },
+  methods: {
+    onLogout() {
+      let loggedInUser = {
+        email: "",
+        username: "",
+        status: false,
+      };
+      store.commit("setStatus", loggedInUser);
+      this.$router.push('/');
+    },
+    handleFunctionCall(functionName) {
+      this[functionName]();
+    },
+  },
 };
 </script>
 
